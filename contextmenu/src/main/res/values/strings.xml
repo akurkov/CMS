@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ContextMenu</string>
+    <string name="sttvColor">Цвет</string>
+    <string name="sttvSize">Размер</string>
+</resources>

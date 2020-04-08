@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">BasicViews</string>
+    <string name="tFindHint">Поиск</string>
+    <string name="bFindHint">Поиск</string>
+    <string name="rbjson">JSON</string>
+    <string name="rbhtml">HTML</string>
+</resources>
