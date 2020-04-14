@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!-- Кнопка поиска по ключевой фразе, при нажатии переход к окну с результатами -->
     <ImageButton
         android:id="@+id/bFind"
         android:layout_width="wrap_content"
@@ -19,6 +20,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@android:drawable/ic_search_category_default" />
 
+    <!-- Поле ввода ключевой фразы -->
     <EditText
         android:id="@+id/tFind"
         android:layout_width="0dp"
@@ -36,6 +38,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Группа выбора формата вывода -->
     <RadioGroup
         android:id="@+id/rgMLType"
         android:orientation="horizontal"
@@ -51,12 +54,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/bFind">
 
+        <!-- Радиокнопка выбора JSON-формата -->
         <RadioButton
             android:id="@+id/rbJSON"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/rbjson" />
 
+        <!-- Радиокнопка выбора HTML-формата -->
         <RadioButton
             android:id="@+id/rbHTML"
             android:layout_width="match_parent"
