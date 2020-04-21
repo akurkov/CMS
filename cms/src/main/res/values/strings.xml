@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">CMS</string>
     <string name="key_id">id15</string>
+    <string name="server_uri">http://l90268zm.beget.tech/</string>
+    <string name="server_auth">auth.php</string>
+    <string name="login">Логин</string>
+    <string name="pass">Пароль</string>
+    <string name="auth">Войти</string>
 </resources>
