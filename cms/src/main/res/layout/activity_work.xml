@@ -6,14 +6,125 @@
     android:layout_height="match_parent"
     tools:context=".work">
 
-    <TextView
-        android:id="@+id/textView"
+    <LinearLayout
+        android:id="@+id/llMenu"
+        android:layout_width="120dp"
+        android:layout_height="fill_parent"
+        android:background="#E0E0E0"
+        android:orientation="vertical"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvExpand"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="0dp"
+            android:layout_marginRight="0dp"
+            android:clickable="true"
+            android:drawableEnd="@drawable/compare_arrows"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/chelsea_market"
+            android:gravity="center"
+            android:onClick="onllMenuClick"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <TextView
+            android:id="@+id/tvGoods"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="0dp"
+            android:clickable="true"
+            android:drawableStart="@drawable/assignment"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/chelsea_market"
+            android:gravity="center"
+            android:onClick="onllMenuClick"
+            android:text="@string/flMenu_Goods"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <TextView
+            android:id="@+id/tvBasket"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="0dp"
+            android:clickable="true"
+            android:drawableStart="@drawable/shopping_cart"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/chelsea_market"
+            android:gravity="center"
+            android:onClick="onllMenuClick"
+            android:text="@string/flMenu_Basket"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <TextView
+            android:id="@+id/tvOrders"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="0dp"
+            android:clickable="true"
+            android:drawableStart="@drawable/shopping_basket"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/chelsea_market"
+            android:gravity="center"
+            android:onClick="onllMenuClick"
+            android:text="@string/flMenu_Orders"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+        <TextView
+            android:id="@+id/tvActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:layout_marginTop="30dp"
+            android:layout_marginRight="0dp"
+            android:clickable="true"
+            android:drawableStart="@drawable/monetization"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:fontFamily="@font/chelsea_market"
+            android:gravity="center"
+            android:onClick="onllMenuClick"
+            android:text="@string/flMenu_Actions"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+
+    </LinearLayout>
+
+    <TableLayout
+        android:id="@+id/tlInfo"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Working activity"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintLeft_toRightOf="@id/llMenu"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </TableLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,15 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/profile"
+        android:id="@+id/mPerson"
         android:icon="@drawable/letter_a"
-        android:title="profile"
+        android:title="@string/imProfile"
         app:showAsAction="always">
 
         <menu>
             <item
-                android:id="@+id/one"
-                android:title="Раз"
+                android:id="@+id/imProfile"
+                android:title="@string/imProfile"
+                app:showAsAction="never" />
+            <item
+                android:id="@+id/imExit"
+                android:title="@string/imExit"
                 app:showAsAction="never" />
         </menu>
 

@@ -1,5 +1,7 @@
 package com.product.cms
 
+import android.content.res.Resources
+
 // Функция кодирования строки по XOR-алгоритму и паролю
 fun String.encrypt(stPass: String): String {
     var baXOR = StringBuilder()
@@ -8,3 +10,6 @@ fun String.encrypt(stPass: String): String {
     }
     return baXOR.toString()
 }
+
+// Переводит DP в Int
+fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()

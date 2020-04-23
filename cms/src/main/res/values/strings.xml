@@ -2,8 +2,15 @@
     <string name="app_name">CMS</string>
     <string name="key_id">id15</string>
     <string name="server_uri">http://l90268zm.beget.tech/</string>
-    <string name="server_auth">auth.php</string>
+    <string name="server_user">user.php</string>
     <string name="login">Логин</string>
     <string name="pass">Пароль</string>
     <string name="auth">Войти</string>
+    <string name="flMenu_Goods">Товары</string>
+    <string name="flMenu_Basket">Корзина</string>
+    <string name="flMenu_Orders">Заказы</string>
+    <string name="flMenu_Actions">Акции</string>
+    <string name="tvRegister">Зарегистрироваться</string>
+    <string name="imProfile">Профиль</string>
+    <string name="imExit">Выйти</string>
 </resources>

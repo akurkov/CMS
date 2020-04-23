@@ -65,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                     header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
                 }
             }
-            val stRequest = "[" + client.get<String>(getString(R.string.server_uri)+getString(R.string.server_auth)+"?token="+stValue).substringAfter("[", "[]")
+            val stRequest = "[" + client.get<String>(getString(R.string.server_uri)+getString(R.string.server_user)+"?exec=authtoken&token="+stValue).substringAfter("[", "[]")
             val JSONArray = JSONArray(stRequest)
             if (JSONArray.length()>0){
                 // Пользователь с таким токеном найден, авторизация прошла
