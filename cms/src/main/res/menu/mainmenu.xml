@@ -3,6 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/mSearch"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:title="Поиск"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/mPerson"
         android:icon="@drawable/letter_a"
         android:title="@string/imProfile"

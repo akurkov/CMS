@@ -3,6 +3,9 @@
     <string name="key_id">id15</string>
     <string name="server_uri">http://l90268zm.beget.tech/</string>
     <string name="server_user">user.php</string>
+    <string name="server_good">goods.php</string>
+    <string name="server_basket">basket.php</string>
+    <string name="server_order">order.php</string>
     <string name="login">Логин</string>
     <string name="pass">Пароль</string>
     <string name="auth">Войти</string>
@@ -13,4 +16,5 @@
     <string name="tvRegister">Зарегистрироваться</string>
     <string name="imProfile">Профиль</string>
     <string name="imExit">Выйти</string>
+    <string name="sSearch">Поиск</string>
 </resources>

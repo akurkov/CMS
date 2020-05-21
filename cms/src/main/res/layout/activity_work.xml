@@ -22,10 +22,10 @@
             android:layout_marginLeft="0dp"
             android:layout_marginTop="0dp"
             android:layout_marginRight="0dp"
-            android:clickable="true"
+            android:clickable="false"
             android:drawableEnd="@drawable/compare_arrows"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/chelsea_market"
             android:gravity="center"
             android:onClick="onllMenuClick"
@@ -38,10 +38,10 @@
             android:layout_marginLeft="0dp"
             android:layout_marginTop="30dp"
             android:layout_marginRight="0dp"
-            android:clickable="true"
+            android:clickable="false"
             android:drawableStart="@drawable/assignment"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/chelsea_market"
             android:gravity="center"
             android:onClick="onllMenuClick"
@@ -55,10 +55,10 @@
             android:layout_marginLeft="0dp"
             android:layout_marginTop="30dp"
             android:layout_marginRight="0dp"
-            android:clickable="true"
+            android:clickable="false"
             android:drawableStart="@drawable/shopping_cart"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/chelsea_market"
             android:gravity="center"
             android:onClick="onllMenuClick"
@@ -72,10 +72,10 @@
             android:layout_marginLeft="0dp"
             android:layout_marginTop="30dp"
             android:layout_marginRight="0dp"
-            android:clickable="true"
+            android:clickable="false"
             android:drawableStart="@drawable/shopping_basket"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/chelsea_market"
             android:gravity="center"
             android:onClick="onllMenuClick"
@@ -89,10 +89,10 @@
             android:layout_marginLeft="0dp"
             android:layout_marginTop="30dp"
             android:layout_marginRight="0dp"
-            android:clickable="true"
+            android:clickable="false"
             android:drawableStart="@drawable/monetization"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
             android:fontFamily="@font/chelsea_market"
             android:gravity="center"
             android:onClick="onllMenuClick"
@@ -101,30 +101,171 @@
 
     </LinearLayout>
 
-    <TableLayout
-        android:id="@+id/tlInfo"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <HorizontalScrollView
+        android:id="@+id/swBC"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintLeft_toRightOf="@id/llMenu"
+        app:layout_constraintStart_toEndOf="@id/llMenu"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <LinearLayout
+            android:id="@+id/llBC"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
 
-        <TableRow
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+    <ScrollView
+        android:id="@+id/swInfo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/llMenu"
+        app:layout_constraintTop_toBottomOf="@id/swBC">
 
-        <TableRow
+        <LinearLayout
+            android:id="@+id/tlInfo"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </ScrollView>
 
-        <TableRow
+    <FrameLayout
+        android:id="@+id/flSearch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/design_default_color_background"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <EditText
+            android:id="@+id/etSearch"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </TableLayout>
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:ems="10"
+            android:hint="@string/sSearch"
+            android:imeOptions="actionDone"
+            android:inputType="textPersonName"
+            android:importantForAutofill="no" />
+    </FrameLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/flPhoto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <WebView
+            android:id="@+id/wvFullPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:clickable="false"
+            tools:layout_editor_absoluteX="20dp"
+            tools:layout_editor_absoluteY="20dp">
+
+        </WebView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/flGoodCard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginBottom="5dp"
+        android:background="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ScrollView
+            android:id="@+id/swCard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:id="@+id/llCard"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" />
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:background="#99AEAEAE"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/iwCardMinus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:onClick="fOnCardClick"
+                app:srcCompat="@drawable/minus" />
+
+            <FrameLayout
+                android:id="@+id/flCardCount"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/tvCardCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="0"
+                    android:textSize="18sp" />
+            </FrameLayout>
+
+            <ImageView
+                android:id="@+id/iwCardPlus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="1"
+                android:onClick="fOnCardClick"
+                app:srcCompat="@drawable/plus" />
+
+            <ImageView
+                android:id="@+id/iwCardShop"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_weight="2"
+                android:onClick="fOnCardClick"
+                app:srcCompat="@drawable/add_shopping_cart" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

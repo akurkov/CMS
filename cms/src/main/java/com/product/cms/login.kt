@@ -4,11 +4,16 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
+import io.ktor.client.call.call
 import io.ktor.client.features.defaultRequest
-import io.ktor.client.request.get
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
 import io.ktor.client.request.header
+import io.ktor.client.response.readText
+import io.ktor.http.HttpMethod
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -17,6 +22,7 @@ import org.json.JSONArray
 
 class login : AppCompatActivity() {
 
+    // При создании лейаута
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -29,7 +35,7 @@ class login : AppCompatActivity() {
     // При нажатии кнопки Назад свернем приложение
     override fun onBackPressed(){
         // Если регистрация, возвращаемся к логину
-        if (btAuth.text.toString()==getString(R.string.tvRegister)){
+        if (btAuth.text.toString() == getString(R.string.tvRegister)){
             tvAuthError.setText("")
             btAuth.setText(R.string.auth)
             tvRegister.visibility = View.VISIBLE
@@ -82,20 +88,33 @@ class login : AppCompatActivity() {
     suspend fun fDoAuth(){
         val client = HttpClient() {
             defaultRequest {
-                header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
+                header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0"
+                )
             }
         }
-        val stRequest = "[" + client.get<String>(getString(R.string.server_uri)+getString(R.string.server_user)+"?exec=authlogin&login="+etLogin.text+"&pass="+etPass.text).substringAfter("[", "[]")
-        val JSONArray = JSONArray(stRequest)
-        if (JSONArray.length()==0){
+        val call = client.call(getString(R.string.server_uri)+getString(R.string.server_user)){
+            method = HttpMethod.Post
+            body = MultiPartFormDataContent(
+                formData {
+                    append("exec", "authlogin")
+                    append("login", etLogin.text.toString())
+                    append("pass", etPass.text.toString().encrypt(getString(R.string.key_id)))
+                }
+            )
+        }
+        val sRequest = call.response.readText()
+        val JSONArray = JSONArray(sRequest)
+        if (JSONArray.length() == 0){
             tvAuthError.setText("Неверные логин или пароль")
         }
         else {
             // Надо сохранить токен
             val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
             val ed = spref.edit()
-            val stEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
-            ed.putString("Value", stEncodedValue)
+            val sEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
+            ed.putString("Value", sEncodedValue)
             ed.commit()
             val intent = Intent(this@login, work::class.java)
             intent.putExtra("login",JSONArray.getJSONObject(0).getString("sLogin"))
@@ -112,8 +131,19 @@ class login : AppCompatActivity() {
                 header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
             }
         }
-        val stRequest = "[" + client.get<String>(getString(R.string.server_uri)+getString(R.string.server_user)+"?exec=register&login="+etLogin.text+"&pass="+etPass.text+"&role=Покупатель").substringAfter("[", "[]")
-        val JSONArray = JSONArray(stRequest)
+        val call = client.call(getString(R.string.server_uri)+getString(R.string.server_user)){
+            method = HttpMethod.Post
+            body = MultiPartFormDataContent(
+                formData {
+                    append("exec", "register")
+                    append("login", etLogin.text.toString())
+                    append("pass", etPass.text.toString().encrypt(getString(R.string.key_id)))
+                    append("role", "Покупатель")
+                }
+            )
+        }
+        val sRequest = call.response.readText()
+        val JSONArray = JSONArray(sRequest)
         if (JSONArray.length()==0){
             tvAuthError.setText("Такой пользователь уже существует")
         }
@@ -121,8 +151,8 @@ class login : AppCompatActivity() {
             // Надо сохранить токен
             val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
             val ed = spref.edit()
-            val stEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
-            ed.putString("Value", stEncodedValue)
+            val sEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
+            ed.putString("Value", sEncodedValue)
             ed.commit()
             val intent = Intent(this@login, work::class.java)
             intent.putExtra("login",JSONArray.getJSONObject(0).getString("sLogin"))
