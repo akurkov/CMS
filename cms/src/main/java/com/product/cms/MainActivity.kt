@@ -22,8 +22,8 @@ import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
 
-    var sKey = "" // Android_ID
-    var sValue = "" // User Token
+    private var sKey = "" // Android_ID
+    private var sValue = "" // User Token
 
     // При создании лейаута
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,9 +33,9 @@ class MainActivity : AppCompatActivity() {
         // Получение настроек из файла настроек
         val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
         val sEncodedKey = spref.getString("Key","").toString()
-        sKey = if(sEncodedKey.length > 0) sEncodedKey.encrypt(getString(R.string.key_id)) else ""
+        sKey = if(sEncodedKey.isNotEmpty()) sEncodedKey.encrypt(getString(R.string.key_id)) else ""
         val sEncodedValue = spref.getString("Value","").toString()
-        sValue = if(sEncodedValue.length > 0) sEncodedValue.encrypt(getString(R.string.key_id)) else ""
+        sValue = if(sEncodedValue.isNotEmpty()) sEncodedValue.encrypt(getString(R.string.key_id)) else ""
 
         // Загрузка на экране, пока не пройдет проверка аутентификации по-умолчанию
         wvBusy.loadUrl("file:///android_asset/busy.gif")
@@ -57,17 +57,17 @@ class MainActivity : AppCompatActivity() {
         val sKey = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
         val sEncodedKey = sKey.encrypt(getString(R.string.key_id))
         ed.putString("Key", sEncodedKey)
-        ed.commit()
+        ed.apply()
     }
 
     // Проверка пользователя по токену, автовход
-    suspend fun fgetToken(){
+    private suspend fun fgetToken(){
         val sKeyID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
 
         // Проверка, совпадает ли ID устройства, если нет, то сразу к логину
-        if ((sKey == sKeyID) and (sValue.length>0)) {
+        if ((sKey == sKeyID) and (sValue.isNotEmpty())) {
             // Получим пользователя по Токену
-            val client = HttpClient() {
+            val client = HttpClient {
                 defaultRequest {
                     header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
                 }
@@ -82,20 +82,20 @@ class MainActivity : AppCompatActivity() {
                 )
             }
             val sRequest = call.response.readText()
-            val JSONArray = JSONArray(sRequest)
-            if (JSONArray.length() > 0){
+            val aJSONArray = JSONArray(sRequest)
+            if (aJSONArray.length() > 0){
                 // Пользователь с таким токеном найден, авторизация прошла
-                val intent = Intent(this@MainActivity, work::class.java)
-                intent.putExtra("login", JSONArray.getJSONObject(0).getString("sLogin"))
-                intent.putExtra("role", JSONArray.getJSONObject(0).getString("sRole"))
-                intent.putExtra("color", JSONArray.getJSONObject(0).getString("sColor"))
+                val intent = Intent(this@MainActivity, Work::class.java)
+                intent.putExtra("login", aJSONArray.getJSONObject(0).getString("sLogin"))
+                intent.putExtra("role", aJSONArray.getJSONObject(0).getString("sRole"))
+                intent.putExtra("color", aJSONArray.getJSONObject(0).getString("sColor"))
                 startActivity(intent)
                 return
             }
         }
 
         // Авторизация не прошла, переходим к окну ввода логина и пароля
-        val intent = Intent(this@MainActivity, login::class.java)
+        val intent = Intent(this@MainActivity, Login::class.java)
         startActivity(intent)
     }
 }

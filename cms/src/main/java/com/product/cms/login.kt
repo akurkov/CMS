@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
@@ -20,7 +19,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.json.JSONArray
 
-class login : AppCompatActivity() {
+class Login : AppCompatActivity() {
 
     // При создании лейаута
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,15 +27,15 @@ class login : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         // При редактировании логина и пароля очищаем ошибку
-        etLogin.setOnClickListener { tvAuthError.setText("") }
-        etPass.setOnClickListener { tvAuthError.setText("") }
+        etLogin.setOnClickListener { tvAuthError.text = "" }
+        etPass.setOnClickListener { tvAuthError.text = "" }
     }
 
     // При нажатии кнопки Назад свернем приложение
     override fun onBackPressed(){
         // Если регистрация, возвращаемся к логину
         if (btAuth.text.toString() == getString(R.string.tvRegister)){
-            tvAuthError.setText("")
+            tvAuthError.text = ""
             btAuth.setText(R.string.auth)
             tvRegister.visibility = View.VISIBLE
             etLogin.setText("")
@@ -49,14 +48,15 @@ class login : AppCompatActivity() {
 
     // Обработчик нажатия кнопок Войти и зарегистрироваться
     fun onbtAuthClick(view: View){
-        tvAuthError.setText("")
+        tvAuthError.text = ""
         when (view.id){
             R.id.btAuth -> {
                 // Если окно логина, то при непустых логине и пароле входим
                 if (btAuth.text.toString()==getString(R.string.auth)) {
-                    if ((etLogin.text.length == 0) or (etPass.text.length == 0)) {
-                        tvAuthError.setText("Не допускаются пустые логин или пароль")
-                    } else {
+                    if ((etLogin.text.isEmpty()) or (etPass.text.isEmpty())) {
+                        tvAuthError.text = "Не допускаются пустые логин или пароль"
+                    }
+                    else {
                         GlobalScope.async(Dispatchers.Main) {
                             fDoAuth()
                         }
@@ -64,9 +64,10 @@ class login : AppCompatActivity() {
                 }
                 // Если окно регистрации, регистрируемся и входим
                 else {
-                    if ((etLogin.text.length == 0) or (etPass.text.length == 0)) {
-                        tvAuthError.setText("Не допускаются пустые логин или пароль")
-                    } else {
+                    if ((etLogin.text.isEmpty()) or (etPass.text.isEmpty())) {
+                        tvAuthError.text = "Не допускаются пустые логин или пароль"
+                    }
+                    else {
                         GlobalScope.async(Dispatchers.Main) {
                             fDoRegister()
                         }
@@ -85,13 +86,10 @@ class login : AppCompatActivity() {
     }
 
     // Функция аутентификации
-    suspend fun fDoAuth(){
-        val client = HttpClient() {
+    private suspend fun fDoAuth(){
+        val client = HttpClient {
             defaultRequest {
-                header(
-                    "User-Agent",
-                    "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0"
-                )
+                header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
             }
         }
         val call = client.call(getString(R.string.server_uri)+getString(R.string.server_user)){
@@ -105,28 +103,28 @@ class login : AppCompatActivity() {
             )
         }
         val sRequest = call.response.readText()
-        val JSONArray = JSONArray(sRequest)
-        if (JSONArray.length() == 0){
-            tvAuthError.setText("Неверные логин или пароль")
+        val aJSONArray = JSONArray(sRequest)
+        if (aJSONArray.length() == 0){
+            tvAuthError.text = "Неверные логин или пароль"
         }
         else {
             // Надо сохранить токен
             val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
             val ed = spref.edit()
-            val sEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
+            val sEncodedValue = aJSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
             ed.putString("Value", sEncodedValue)
-            ed.commit()
-            val intent = Intent(this@login, work::class.java)
-            intent.putExtra("login",JSONArray.getJSONObject(0).getString("sLogin"))
-            intent.putExtra("role",JSONArray.getJSONObject(0).getString("sRole"))
-            intent.putExtra("color",JSONArray.getJSONObject(0).getString("sColor"))
+            ed.apply()
+            val intent = Intent(this@Login, Work::class.java)
+            intent.putExtra("login",aJSONArray.getJSONObject(0).getString("sLogin"))
+            intent.putExtra("role",aJSONArray.getJSONObject(0).getString("sRole"))
+            intent.putExtra("color",aJSONArray.getJSONObject(0).getString("sColor"))
             startActivity(intent)
         }
     }
 
     // Функция регистрации
-    suspend fun fDoRegister(){
-        val client = HttpClient() {
+    private suspend fun fDoRegister(){
+        val client = HttpClient {
             defaultRequest {
                 header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
             }
@@ -143,21 +141,21 @@ class login : AppCompatActivity() {
             )
         }
         val sRequest = call.response.readText()
-        val JSONArray = JSONArray(sRequest)
-        if (JSONArray.length()==0){
-            tvAuthError.setText("Такой пользователь уже существует")
+        val aJSONArray = JSONArray(sRequest)
+        if (aJSONArray.length() == 0){
+            tvAuthError.text = "Такой пользователь уже существует"
         }
         else {
             // Надо сохранить токен
             val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
             val ed = spref.edit()
-            val sEncodedValue = JSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
+            val sEncodedValue = aJSONArray.getJSONObject(0).getString("sToken").encrypt(getString(R.string.key_id))
             ed.putString("Value", sEncodedValue)
-            ed.commit()
-            val intent = Intent(this@login, work::class.java)
-            intent.putExtra("login",JSONArray.getJSONObject(0).getString("sLogin"))
-            intent.putExtra("role",JSONArray.getJSONObject(0).getString("sRole"))
-            intent.putExtra("color",JSONArray.getJSONObject(0).getString("sColor"))
+            ed.apply()
+            val intent = Intent(this@Login, Work::class.java)
+            intent.putExtra("login",aJSONArray.getJSONObject(0).getString("sLogin"))
+            intent.putExtra("role",aJSONArray.getJSONObject(0).getString("sRole"))
+            intent.putExtra("color",aJSONArray.getJSONObject(0).getString("sColor"))
             startActivity(intent)
         }
     }

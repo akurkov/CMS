@@ -19,6 +19,11 @@
                 android:title="@string/imProfile"
                 app:showAsAction="never" />
             <item
+                android:id="@+id/imSettings"
+                android:title="@string/imsettings"
+                android:visible="false"
+                app:showAsAction="never" />
+            <item
                 android:id="@+id/imExit"
                 android:title="@string/imExit"
                 app:showAsAction="never" />

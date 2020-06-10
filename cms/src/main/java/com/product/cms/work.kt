@@ -8,7 +8,6 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewTreeObserver
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
@@ -25,30 +24,37 @@ import kotlinx.android.synthetic.main.activity_work.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import org.json.JSONArray
 import java.util.*
 
-open class work : AppCompatActivity() {
+open class Work : AppCompatActivity() {
 
     var sLogin = "" // Имя пользователя
-    var sRole = "" // Роль пользователя
-    var sColor = "" // Цвет заголовка окна роли
-    var bExpanded = true // Признак развернутого бокового меню
+    private var sRole = "" // Роль пользователя
+    private var sColor = "" // Цвет заголовка окна роли
+    private var bExpanded = true // Признак развернутого бокового меню
     var iIDCategory = 0 // Идентификатор текущей категории
     var sMode = "" // Режим отображения
     var bLoading = false // Признак загрузки данных
     var iPage = 0 // Номер текущей загрузки данных
-    var bEOD = false // Признак достгнутого конца данных
+    var bEOD = false // Признак достигнутого конца данных
     var bStop = false // Признак завершения параллельного потока
     var sSearchString = "" // Поисковая строка
-    var aOrders: MutableList<MutableList<Int>> = ArrayList() // Связанные с заказами обхекты: идентификатор заказа, признак раскрытия заказа, количество элементов в заказе
+    var aOrders: MutableList<MutableList<Int>> = ArrayList() // Связанные с заказами объекты: идентификатор заказа, признак раскрытия заказа, количество элементов в заказе
+    var client: HttpClient? = null // Объект для вызова HTTP-методов
 
     // Создание лейаута
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_work)
-        sLogin = intent.getStringExtra("login")
-        sRole = intent.getStringExtra("role")
-        sColor = "#"+intent.getStringExtra("color")
+        sLogin = intent.getStringExtra("login")!!
+        sRole = intent.getStringExtra("role")!!
+        sColor = "#" + intent.getStringExtra("color")!!
+        client = HttpClient {
+            defaultRequest {
+                header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
+            }
+        }
 
         // Установим цвет ActionBar в зависимости от роли
         if (sColor.length > 6) {
@@ -65,24 +71,19 @@ open class work : AppCompatActivity() {
             if (!hasFocus){
                 flSearch.visibility = View.GONE
                 val imm: InputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(v.getWindowToken(), 0)
+                imm.hideSoftInputFromWindow(v.windowToken, 0)
             }
         }
 
         // Реакция на окончание редактирования строки поиска
-        etSearch.setOnEditorActionListener { v, actionId, event ->
+        etSearch.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE ) {
                 // Выбран поиск
                 etSearch.clearFocus()
                 if (etSearch.text.toString() != ""){
-                    if (bLoading) {
-                        bStop = true
-                    }
                     sMode="Search"
-                    GlobalScope.async(Dispatchers.Main){
-                        sSearchString = etSearch.text.toString()
-                        fGoodsSearch()
-                    }
+                    sSearchString = etSearch.text.toString()
+                    fGoodsSearch()
                 }
                 true
             }
@@ -92,16 +93,18 @@ open class work : AppCompatActivity() {
         }
 
         // Подготовим подгрузку при скроллинге
-        swInfo.viewTreeObserver.addOnScrollChangedListener(ViewTreeObserver.OnScrollChangedListener {
+        swInfo.viewTreeObserver.addOnScrollChangedListener {
             etSearch.clearFocus()
             val view = swInfo.getChildAt(swInfo.childCount - 1) as View
-            val iDiff: Int = view.bottom - (swInfo.getHeight() + swInfo.getScrollY())
+            val iDiff: Int = view.bottom - (swInfo.height + swInfo.scrollY)
             if (iDiff == 0) {
-                GlobalScope.async(Dispatchers.Main) {
-                    fAddGoods()
-                }
+                fAddGoods()
             }
-        })
+        }
+
+        // Отобразим акции
+        sMode = "Actions"
+        fGoodActions()
     }
 
     // При остановке лейаута сохраним позицию бокового меню
@@ -110,7 +113,7 @@ open class work : AppCompatActivity() {
         val spref = getSharedPreferences("common", Context.MODE_PRIVATE)
         val ed = spref.edit()
         ed.putBoolean("Expanded", bExpanded)
-        ed.commit()
+        ed.apply()
     }
 
     // Изменение иконки меню в зависимости от первой буквы логина
@@ -122,8 +125,27 @@ open class work : AppCompatActivity() {
             menu.getItem(1).setIcon(R.drawable.letter_a)
         }
         else {
-            menu.getItem(1).setIcon(getDrawable(iIDIcon))
+            menu.getItem(1).icon = getDrawable(iIDIcon)
         }
+
+        // Скроем меню Настройки для покупателя
+        GlobalScope.async(Dispatchers.Main) {
+            val call = client!!.call(getString(R.string.server_uri)+getString(R.string.server_perf)){
+                method = HttpMethod.Post
+                body = MultiPartFormDataContent(
+                    formData {
+                        append("exec", "getrolerights")
+                        append("role", sRole)
+                    }
+                )
+            }
+            val sRequest = call.response.readText()
+            val aJSONArray = JSONArray(sRequest)
+            if (aJSONArray.length() > 0){
+                menu.getItem(1).subMenu.getItem(1).isVisible = true
+            }
+        }
+
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -142,16 +164,11 @@ open class work : AppCompatActivity() {
         // В режиме Товары возвращаемся по хлебным крошкам
         if (sMode == "Goods"){
             if (llBC.childCount > 2){
-                if (bLoading) {
-                    bStop = true
-                }
                 llBC.removeViewAt(llBC.childCount - 1)
                 llBC.removeViewAt(llBC.childCount - 1)
                 val tvChild = llBC.getChildAt(llBC.childCount - 1) as TextView
                 iIDCategory = tvChild.tag.toString().toInt()
-                GlobalScope.async(Dispatchers.Main) {
-                        fGoodsGetList(tvChild.text.toString())
-                }
+                fGoodsGetList(tvChild.text.toString())
                 return
             }
         }
@@ -163,10 +180,7 @@ open class work : AppCompatActivity() {
         etSearch.clearFocus()
         when (item.itemId){
             R.id.imExit -> { // Нажата кнопка Выход, переходим к логину
-                if (bLoading){
-                    bStop = true
-                }
-                val intent = Intent(this@work, login::class.java)
+                val intent = Intent(this@Work, Login::class.java)
                 startActivity(intent)
             }
             R.id.mSearch ->{ // Нажата кнопка поиск
@@ -175,13 +189,20 @@ open class work : AppCompatActivity() {
                 etSearch.requestFocus()
             }
             R.id.imProfile -> { // Нажата кнопка Профиль, переходим к настройкам
-                if (bLoading){
-                    bStop = true
-                }
-                val intent = Intent(this@work, Prefs::class.java)
+                val intent = Intent(this@Work, Prefs::class.java)
                 intent.putExtra("login", sLogin)
                 intent.putExtra("color", sColor)
+                intent.putExtra("role", sRole)
                 intent.putExtra("mode", "Профиль")
+                startActivity(intent)
+            }
+            R.id.imSettings -> {
+                // Нажата кнопка Настройки, переходим к настройкам
+                val intent = Intent(this@Work, Prefs::class.java)
+                intent.putExtra("login", sLogin)
+                intent.putExtra("color", sColor)
+                intent.putExtra("role", sRole)
+                intent.putExtra("mode", "Настройки")
                 startActivity(intent)
             }
         }
@@ -197,19 +218,11 @@ open class work : AppCompatActivity() {
             }
             R.id.tvGoods -> { // Нажата кнопка Товары
                 sMode = "Goods"
-                if (bLoading){
-                    bStop = true
-                }
                 fGoodsInit()
-                GlobalScope.async(Dispatchers.Main) {
-                    fGoodsGetList("")
-                }
+                fGoodsGetList("")
             }
             R.id.tvBasket -> { // Нажата кнопка Корзина
                 sMode = "Basket"
-                if (bLoading){
-                    bStop = true
-                }
                 fBasketInit()
                 GlobalScope.async(Dispatchers.Main) {
                     fBasketGetList()
@@ -217,9 +230,6 @@ open class work : AppCompatActivity() {
             }
             R.id.tvOrders -> { // Нажата кнопка Заказы
                 sMode = "Orders"
-                if (bLoading){
-                    bStop = true
-                }
                 fOrderInit()
                 GlobalScope.async(Dispatchers.Main) {
                     fOrderGetList()
@@ -227,33 +237,28 @@ open class work : AppCompatActivity() {
             }
             R.id.tvActions -> { // нажата кнопка Акции
                 sMode = "Actions"
-                if (bLoading){
-                    bStop = true
-                }
-                GlobalScope.async(Dispatchers.Main) {
-                    fGoodActions()
-                }
+                fGoodActions()
             }
         }
     }
 
     // Отображение меню в зависимости от признака развертывания
-    fun fCheckExpand(){
+    private fun fCheckExpand(){
         if (bExpanded){
             llMenu.layoutParams.width = 120.toPx()
             llMenu.requestLayout()
-            tvActions.setText(R.string.flMenu_Actions)
-            tvBasket.setText(R.string.flMenu_Basket)
-            tvGoods.setText(R.string.flMenu_Goods)
-            tvOrders.setText(R.string.flMenu_Orders)
+            tvActions.text = getString(R.string.flMenu_Actions)
+            tvBasket.text = getString(R.string.flMenu_Basket)
+            tvGoods.text = getString(R.string.flMenu_Goods)
+            tvOrders.text = getString(R.string.flMenu_Orders)
         }
         else {
             llMenu.layoutParams.width = 30.toPx()
             llMenu.requestLayout()
-            tvActions.setText("")
-            tvBasket.setText("")
-            tvGoods.setText("")
-            tvOrders.setText("")
+            tvActions.text = ""
+            tvBasket.text = ""
+            tvGoods.text = ""
+            tvOrders.text = ""
         }
     }
 
@@ -264,25 +269,20 @@ open class work : AppCompatActivity() {
                 var sCountText = (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).text.toString()
                 if (sCountText != "0"){
                     sCountText = (sCountText.toInt() - 1).toString()
-                    (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).setText(sCountText)
+                    (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).text = sCountText
                 }
             }
             R.id.iwCardPlus ->{ // Увеличить количество товара
                 var sCountText = (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).text.toString()
                 sCountText = (sCountText.toInt() + 1).toString()
-                (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).setText(sCountText)
+                (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).text = sCountText
             }
             R.id.iwCardShop ->{ // Положить в корзину
                 val iCount = (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).text.toString().toInt()
                 val iIDGood = (((view.parent as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0) as TextView).tag.toString().toInt()
                 if (iCount > 0){
                     GlobalScope.async(Dispatchers.Main) {
-                        val client = HttpClient() {
-                            defaultRequest {
-                                header("User-Agent","Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firefox/55.0")
-                            }
-                        }
-                        val call = client.call(getString(R.string.server_uri)+getString(R.string.server_basket)){
+                        val call = client!!.call(getString(R.string.server_uri)+getString(R.string.server_basket)){
                             method = HttpMethod.Post
                             body = MultiPartFormDataContent(
                                 formData {
@@ -295,7 +295,7 @@ open class work : AppCompatActivity() {
                         }
                         val sRequest = call.response.readText()
                         if (sRequest.toInt() == 0){
-                            Toast.makeText(this@work,"Товар добавлен в корзину",Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@Work,"Товар добавлен в корзину",Toast.LENGTH_SHORT).show()
                         }
                     }
                 }

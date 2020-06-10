@@ -6,6 +6,8 @@
     <string name="server_good">goods.php</string>
     <string name="server_basket">basket.php</string>
     <string name="server_order">order.php</string>
+    <string name="server_perf">perf.php</string>
+    <string name="server_test">test.php</string>
     <string name="login">Логин</string>
     <string name="pass">Пароль</string>
     <string name="auth">Войти</string>
@@ -17,4 +19,14 @@
     <string name="imProfile">Профиль</string>
     <string name="imExit">Выйти</string>
     <string name="sSearch">Поиск</string>
+    <string name="imsettings">Настройки</string>
+    <string name="PerfAttr">Атрибуты</string>
+    <string name="PerfCategory">Категории</string>
+    <string name="PerfGood">Товары</string>
+    <string name="PerfBasket">Корзины</string>
+    <string name="PerfOrder">Заказы</string>
+    <string name="PerfState">Статусы</string>
+    <string name="PerfActions">Акции</string>
+    <string name="PerfUser">Пользователи</string>
+    <string name="PerfRole">Роли</string>
 </resources>
