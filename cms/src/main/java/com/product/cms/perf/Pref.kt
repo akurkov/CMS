@@ -503,15 +503,33 @@ class Prefs : AppCompatActivity() {
             tvPerfAttr.id ->{
                 if (sPerfWindow != getString(R.string.PerfAttr)){
                     sPerfWindow = getString(R.string.PerfAttr)
-                    ivPaste.visibility = View.GONE
+                    ivPaste.visibility = View.INVISIBLE
+                    llMenu.visibility = View.GONE
                     fPrefAttr(view.tag.toString())
                 }
             }
             tvPerfCategory.id ->{
                 if (sPerfWindow != getString(R.string.PerfCategory)){
                     sPerfWindow = getString(R.string.PerfCategory)
-                    ivPaste.visibility = View.GONE
+                    ivPaste.visibility = View.INVISIBLE
+                    ivCategory.visibility = View.GONE
+                    ivListoff.visibility = View.GONE
+                    ivCopy.visibility = View.VISIBLE
+                    ivCut.visibility = View.VISIBLE
+                    llMenu.visibility = View.GONE
                     fPrefCategory(view.tag.toString())
+                }
+            }
+            tvPerfGood.id ->{
+                if (sPerfWindow != "Товары"){
+                    sPerfWindow = "Товары"
+                    ivPaste.visibility = View.INVISIBLE
+                    ivCategory.visibility = View.VISIBLE
+                    ivListoff.visibility = View.VISIBLE
+                    ivCopy.visibility = View.GONE
+                    ivCut.visibility = View.GONE
+                    llMenu.visibility = View.VISIBLE
+                    fPrefGood(view.tag.toString())
                 }
             }
         }

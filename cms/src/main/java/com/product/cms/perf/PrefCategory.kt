@@ -183,7 +183,6 @@ fun Prefs.fOutputCategory(sID: String, sParent: String, sRights: String){
             fCollapseCategory()
             svPerMenu.visibility = View.GONE
             llEdit.visibility = View.GONE
-            bExpanded = true
             aViews[0] = null
 
             val llCat = LinearLayout(this)
@@ -274,6 +273,7 @@ fun Prefs.fOutputCategory(sID: String, sParent: String, sRights: String){
             }
             else{
                 // Вставка нового элемента
+                bExpanded = true
                 var iMaxNewIndex = 0
                 // Найдем новый идентификатор для нового атрибута
                 for (i in 0 until jaSaveData.length()){
@@ -331,7 +331,7 @@ fun Prefs.fOutputCategory(sID: String, sParent: String, sRights: String){
                         jaSaveData.put(joSaveData)
                         fCollapseCategory()
                     } else {
-                        Toast.makeText(this, "Пустое имя атрибута не допускается", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Пустое имя категории не допускается", Toast.LENGTH_SHORT).show()
                     }
                 }
                 llBut.addView(iwCancel)

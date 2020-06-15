@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_color -> {
+        /*R.id.action_color -> {
             if (tvColor.currentTextColor == Color.BLUE) {
                 tvColor.setTextColor(Color.RED)
             }
@@ -39,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                 tvSize.setTextSize(TypedValue.COMPLEX_UNIT_PX, 40f)
             }
             true
-        }
+        }*/
         else -> {
             super.onOptionsItemSelected(item)
         }
