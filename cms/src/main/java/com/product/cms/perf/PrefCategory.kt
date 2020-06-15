@@ -462,5 +462,5 @@ suspend fun Prefs.fSaveCategory():Int {
     }
     val sRes = call.response.readText()
     log.warning(sRes)
-    return 0 //sRes.toInt()
+    return sRes.toInt()
 }
