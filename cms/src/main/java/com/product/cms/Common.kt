@@ -19,7 +19,12 @@ fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toIn
 
 // Конвертация даты в читаемый формат
 fun String.convertDate(): String {
-    return this[8].toString() + this[9].toString() + "." + this[5].toString() + this[6].toString() + "." + this[0].toString() + this[1].toString() + this[2].toString() + this[3].toString()
+    if (this.length > 9) {
+        return this[8].toString() + this[9].toString() + "." + this[5].toString() + this[6].toString() + "." + this[0].toString() + this[1].toString() + this[2].toString() + this[3].toString()
+    }
+    else{
+        return this
+    }
 }
 
 // Маска для ввода даты

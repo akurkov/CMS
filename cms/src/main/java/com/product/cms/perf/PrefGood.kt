@@ -4,20 +4,25 @@ package com.product.cms
 
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.text.InputType
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import io.ktor.client.call.call
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.response.readText
 import io.ktor.http.HttpMethod
 import kotlinx.android.synthetic.main.activity_prefs.*
+import kotlinx.android.synthetic.main.dialog_attrvalues.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import org.json.JSONArray
+import org.json.JSONObject
+import java.util.logging.Logger
 
 // Инициализация окна настроек товаров
 fun Prefs.fPrefGood(sRights: String) {
@@ -64,8 +69,8 @@ fun Prefs.fPrefGood(sRights: String) {
             val llGood = LinearLayout(this)
             llGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             llGood.orientation = LinearLayout.HORIZONTAL
-            llGood.setOnClickListener(onLLClickListener())
-            llGood.setOnLongClickListener(onLLLongClickListener())
+            llGood.setOnClickListener(onLLClickListener(sRights))
+            llGood.setOnLongClickListener(onLLLongClickListener(sRights))
             val flGood = FrameLayout(this)
             flGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
             (flGood.layoutParams as LinearLayout.LayoutParams).setMargins(0,0,0,0)
@@ -108,13 +113,15 @@ fun Prefs.fPrefGood(sRights: String) {
 }
 
 // Клик на строчку с товаром - покажем карточку
-fun Prefs.onLLClickListener(): View.OnClickListener {
+fun Prefs.onLLClickListener(sRights: String): View.OnClickListener {
     return View.OnClickListener { v->
         fCollapseCategory()
         svPerMenu.visibility = View.GONE
         llEdit.visibility = View.GONE
+        llMenu.visibility = View.GONE
         val svGoodCart = ScrollView(this)
         svGoodCart.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+        svGoodCart.tag = "GoodCard"
         clPrefs.addView(svGoodCart)
         val llGoodCart = LinearLayout(this)
         llGoodCart.orientation = LinearLayout.VERTICAL
@@ -122,6 +129,7 @@ fun Prefs.onLLClickListener(): View.OnClickListener {
         llGoodCart.setBackgroundColor(Color.parseColor("#FFFFFF"))
         svGoodCart.addView(llGoodCart)
         GlobalScope.async(Dispatchers.Main) {
+            // Получим перечень атрибутов
             val call = client!!.call(getString(R.string.server_uri) + getString(R.string.server_perf)) {
                 method = HttpMethod.Post
                 body = MultiPartFormDataContent(formData {
@@ -131,20 +139,16 @@ fun Prefs.onLLClickListener(): View.OnClickListener {
             }
             val sRequest = call.response.readText()
             val jaGoodAttrs = JSONArray(sRequest)
+
+            // Выведем атрибуты
             for (i in 0 until jaGoodAttrs.length()){
                 val llGood = LinearLayout(this@onLLClickListener)
                 llGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 (llGood.layoutParams as LinearLayout.LayoutParams).setMargins(10,0,10,0)
                 llGood.orientation = LinearLayout.HORIZONTAL
-                llGood.tag = mapOf(
-                    "iIDAttr" to jaGoodAttrs.getJSONObject(i).getString("iIDAttr"),
-                    "iIDType" to jaGoodAttrs.getJSONObject(i).getString("iIDType"),
-                    "bRequire" to jaGoodAttrs.getJSONObject(i).getString("bRequire"),
-                    "sType" to jaGoodAttrs.getJSONObject(i).getString("sType")
-                )
                 llGoodCart.addView(llGood)
                 val flAttrName = FrameLayout(this@onLLClickListener)
-                flAttrName.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 0.35f)
+                flAttrName.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 0.65f)
                 (flAttrName.layoutParams as LinearLayout.LayoutParams).setMargins(0,0,5,0)
                 llGood.addView(flAttrName)
                 val tvAttrName = TextView(this@onLLClickListener)
@@ -154,13 +158,122 @@ fun Prefs.onLLClickListener(): View.OnClickListener {
                 tvAttrName.setTextColor(Color.parseColor("#000000"))
                 tvAttrName.text = jaGoodAttrs.getJSONObject(i).getString("sName")
                 flAttrName.addView(tvAttrName)
+                val flAttrValue = FrameLayout(this@onLLClickListener)
+                flAttrValue.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT, 0.35f)
+                (flAttrValue.layoutParams as LinearLayout.LayoutParams).setMargins(5,0,0,0)
+                llGood.addView(flAttrValue)
+                var sValue = when (jaGoodAttrs.getJSONObject(i).getString("sType")) {
+                    "Число" -> jaGoodAttrs.getJSONObject(i).getString("fValue")
+                    "Дата" -> jaGoodAttrs.getJSONObject(i).getString("dValue").convertDate()
+                    "Время" -> jaGoodAttrs.getJSONObject(i).getString("dValue")
+                    else -> jaGoodAttrs.getJSONObject(i).getString("sValue")
+                }
+                sValue = if (sValue == "null") "" else sValue
+                var etAttrValue: View?
+                if (jaGoodAttrs.getJSONObject(i).getString("sType") == "Перечисление"){
+                    val aAttrValues = mutableListOf<String>()
+                    var sList = jaGoodAttrs.getJSONObject(i).getString("sValues")
+                    while (sList.isNotEmpty()){
+                        val sNext = sList.substringBefore('#',sList)
+                        sList = sList.substringAfter('#',"")
+                        aAttrValues.add(sNext)
+                    }
+                    etAttrValue = Spinner(this@onLLClickListener)
+                    val adAttrValue = ArrayAdapter(this@onLLClickListener, android.R.layout.simple_spinner_item, aAttrValues)
+                    adAttrValue.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                    etAttrValue.adapter = adAttrValue
+                    etAttrValue.gravity = Gravity.START + Gravity.CENTER_VERTICAL
+                    etAttrValue.setSelection(aAttrValues.indexOf(sValue))
+                }
+                else{
+                    etAttrValue = EditText(this@onLLClickListener)
+                    etAttrValue.gravity = Gravity.START + Gravity.CENTER_VERTICAL
+                    etAttrValue.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                    etAttrValue.setTextColor(Color.parseColor("#000000"))
+                    etAttrValue.setText(sValue)
+                    when (jaGoodAttrs.getJSONObject(i).getString("sType")){ // Время пока не трогаю, нет атрибутов. При наличии сделат подобно дате
+                        "Дата" -> {
+                            etAttrValue.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL + InputType.TYPE_CLASS_NUMBER
+                            DateInputMask(etAttrValue).listen()
+                        }
+                        "Число" -> {
+                            etAttrValue.inputType = InputType.TYPE_NUMBER_FLAG_DECIMAL + InputType.TYPE_CLASS_NUMBER
+                        }
+                    }
+                }
+                etAttrValue.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+                flAttrValue.addView(etAttrValue)
             }
+
+            // Выведем кнопки
+            val llBut = LinearLayout(this@onLLClickListener)
+            llBut.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+            (llBut.layoutParams as LinearLayout.LayoutParams).setMargins(0,20,0,0)
+            llBut.orientation = LinearLayout.HORIZONTAL
+            val iwCancel = ImageView(this@onLLClickListener)
+            iwCancel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            iwCancel.setImageResource(R.drawable.cancel)
+            iwCancel.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            iwCancel.setOnClickListener {
+                llMenu.visibility = View.VISIBLE
+                clPrefs.removeView(svGoodCart)
+            }
+            llBut.addView(iwCancel)
+            if (sRights == "W") {
+                val iwOK = ImageView(this@onLLClickListener)
+                iwOK.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                iwOK.setImageResource(R.drawable.done)
+                iwOK.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                iwOK.setOnClickListener {
+                    var bSaving = true
+                    for (i in 0 until jaGoodAttrs.length()) {
+                        val view = ((llGoodCart.getChildAt(i) as LinearLayout).getChildAt(1) as FrameLayout).getChildAt(0)
+                        if ((view is EditText) && (jaGoodAttrs.getJSONObject(i).getInt("bRequire") == 1)) {
+                            if (view.text.toString().isEmpty()) {
+                                bSaving = false
+                                Toast.makeText(this@onLLClickListener, "Атрибут " + jaGoodAttrs.getJSONObject(i).getString("sName") + " не может быть пустым", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        when (jaGoodAttrs.getJSONObject(i).getString("sType")) {
+                            "Число" -> jaGoodAttrs.getJSONObject(i).put("fValue", (view as EditText).text.toString())
+                            "Дата", "Время" -> jaGoodAttrs.getJSONObject(i).put("dValue", (view as EditText).text.toString())
+                            "Перечисление" -> jaGoodAttrs.getJSONObject(i).put("sValue", (view as Spinner).selectedItem.toString())
+                            else -> jaGoodAttrs.getJSONObject(i).put("sValue", (view as EditText).text.toString())
+                        }
+                        jaGoodAttrs.getJSONObject(i).put("iIDObject", v.tag.toString())
+                    }
+                    if (bSaving) {
+                        GlobalScope.async(Dispatchers.Main) {
+                            val log = Logger.getAnonymousLogger()
+                            log.warning(jaGoodAttrs.toString())
+                            val call = client!!.call(getString(R.string.server_uri) + getString(R.string.server_perf)) {
+                                method = HttpMethod.Post
+                                body = MultiPartFormDataContent(formData {
+                                    append("exec", "savegoodattrs")
+                                    append("jsonattrs",jaGoodAttrs.toString())
+                                })
+                            }
+                            val iRes = call.response.readText().toInt()
+                            if (iRes == 0){
+                                Toast.makeText(this@onLLClickListener, "Атрибуты успешно сохранены", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        llMenu.visibility = View.VISIBLE
+                        clPrefs.removeView(svGoodCart)
+                    }
+                }
+                llBut.addView(iwOK)
+            }
+            llGoodCart.addView(llBut)
+            val spSpace = Space(this@onLLClickListener)
+            spSpace.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 200)
+            llGoodCart.addView(spSpace)
         }
     }
 }
 
 // Долгий клик на строчку с товаром - покажем контекстное меню
-fun Prefs.onLLLongClickListener(): View.OnLongClickListener {
+fun Prefs.onLLLongClickListener(sRights: String): View.OnLongClickListener {
     return View.OnLongClickListener { v->
         fCollapseCategory()
         svPerMenu.visibility = View.GONE
@@ -170,7 +283,73 @@ fun Prefs.onLLLongClickListener(): View.OnLongClickListener {
         // Редактирование товара
         ivEdit.setOnClickListener {
             llEdit.visibility = View.GONE
-            Toast.makeText(this, "Редактирование товара", Toast.LENGTH_SHORT).show()
+            if (sRights == "R") {
+                Toast.makeText(this, "Нет прав для редактирования товара", Toast.LENGTH_SHORT).show()
+            }
+            else{
+                if (((v as LinearLayout).getChildAt(0) as FrameLayout).getChildAt(0) is EditText){
+                    return@setOnClickListener
+                }
+                bExpanded = true
+                aViews[0] = (v.getChildAt(0) as FrameLayout).getChildAt(0)
+                (v.getChildAt(0) as FrameLayout).removeAllViews()
+                val etGood = EditText(this)
+                etGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+                etGood.setText((aViews[0] as TextView).text)
+                (v.getChildAt(0) as FrameLayout).addView(etGood)
+                etGood.requestFocus()
+                // Добавим кнопки
+                val llBut = LinearLayout(this)
+                llBut.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+                llBut.orientation = LinearLayout.HORIZONTAL
+                val iwCancel = ImageView(this)
+                iwCancel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                iwCancel.setImageResource(R.drawable.cancel)
+                iwCancel.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                iwCancel.setOnClickListener {
+                    svPerMenu.visibility = View.GONE
+                    llEdit.visibility = View.GONE
+                    fCollapseCategory()
+                }
+                val iwOK = ImageView(this)
+                iwOK.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                iwOK.setImageResource(R.drawable.done)
+                iwOK.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                iwOK.setOnClickListener(onOkClickListener(v))
+                llBut.addView(iwCancel)
+                llBut.addView(iwOK)
+                val iwDel = ImageView(this)
+                iwDel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                iwDel.setImageResource(R.drawable.delete)
+                iwDel.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                iwDel.setOnClickListener {
+                    svPerMenu.visibility = View.GONE
+                    val dlAttrDel = AlertDialog.Builder(this)
+                    dlAttrDel.setTitle("Предупреждение")
+                    dlAttrDel.setMessage("Удалить товар?")
+                    dlAttrDel.setPositiveButton("Да") { _, _ ->
+                        GlobalScope.async(Dispatchers.Main) {
+                            val call = client!!.call(getString(R.string.server_uri) + getString(R.string.server_perf)) {
+                                method = HttpMethod.Post
+                                body = MultiPartFormDataContent(formData {
+                                    append("exec", "savegood")
+                                    append("name", "")
+                                    append("id", v.tag.toString())
+                                    append("del", 1)
+                                })
+                            }
+                            val iRequest = call.response.readText().toInt()
+                        }
+                        aViews[0] = null
+                        fCollapseCategory()
+                    }
+                    dlAttrDel.setNegativeButton("Нет") { _, _ ->
+                    }
+                    dlAttrDel.show()
+                }
+                llBut.addView(iwDel)
+            llInfo.addView(llBut,(v.parent as LinearLayout).indexOfChild(v) + 1)
+            }
         }
 
         // Применяемость к категории
@@ -198,23 +377,34 @@ fun Prefs.onOkClickListener(view: View): View.OnClickListener {
         else {
             GlobalScope.async(Dispatchers.Main) {
                 // Сохраним товар
+                var iID = 0
+                if (view.tag != null){
+                    iID = view.tag.toString().toInt()
+                }
                 val call = client!!.call(getString(R.string.server_uri) + getString(R.string.server_perf)) {
                     method = HttpMethod.Post
                     body = MultiPartFormDataContent(formData {
                         append("exec", "savegood")
                         append("name", sGoodName)
+                        append("id", iID)
+                        append("del", 0)
                     })
                 }
                 val iRequest = call.response.readText().toInt()
                 if (iRequest > 0) {
-                    val tvGood = TextView(this@onOkClickListener)
-                    view.tag = iRequest
-                    tvGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
-                    tvGood.gravity = Gravity.START + Gravity.CENTER_VERTICAL
-                    tvGood.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
-                    tvGood.text = sGoodName
-                    tvGood.setTextColor(Color.parseColor("#000000"))
-                    aViews[0] = tvGood
+                    if (iID == 0) {
+                        val tvGood = TextView(this@onOkClickListener)
+                        view.tag = iRequest
+                        tvGood.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
+                        tvGood.gravity = Gravity.START + Gravity.CENTER_VERTICAL
+                        tvGood.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                        tvGood.text = sGoodName
+                        tvGood.setTextColor(Color.parseColor("#000000"))
+                        aViews[0] = tvGood
+                    }
+                    else{
+                        (aViews[0] as TextView).text = sGoodName
+                    }
                     fCollapseCategory()
                 }
                 if (iRequest < 0) {

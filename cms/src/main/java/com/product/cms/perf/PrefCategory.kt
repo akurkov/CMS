@@ -452,7 +452,6 @@ fun Prefs.fCollapseCategory(){
 
 // Сохранение категорий
 suspend fun Prefs.fSaveCategory():Int {
-    val log = Logger.getAnonymousLogger()
     val call = client!!.call(getString(R.string.server_uri) + getString(R.string.server_perf)) {
         method = HttpMethod.Post
         body = MultiPartFormDataContent(formData {
@@ -461,6 +460,5 @@ suspend fun Prefs.fSaveCategory():Int {
         })
     }
     val sRes = call.response.readText()
-    log.warning(sRes)
     return sRes.toInt()
 }

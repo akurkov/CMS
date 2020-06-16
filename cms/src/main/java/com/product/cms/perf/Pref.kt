@@ -72,6 +72,24 @@ class Prefs : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed(){
+        var iGoodCardIndex = -1
+        for (i in 0 until clPrefs.childCount){
+            if (clPrefs.getChildAt(i) is ScrollView){
+                if (clPrefs.getChildAt(i).tag == "GoodCard"){
+                    iGoodCardIndex = i
+                }
+            }
+        }
+        if (iGoodCardIndex < 0) {
+            super.onBackPressed()
+        }
+        else {
+            llMenu.visibility = View.VISIBLE
+            clPrefs.removeViewAt(iGoodCardIndex)
+        }
+    }
+
     // Сохранение настроек текущего окна
     fun onTvOKClick(view: View){
         svPerMenu.visibility = View.GONE
