@@ -14,6 +14,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
 import io.ktor.client.features.defaultRequest
@@ -81,13 +82,16 @@ class Prefs : AppCompatActivity() {
                 }
             }
         }
-        if (iGoodCardIndex < 0) {
-            super.onBackPressed()
-        }
-        else {
+        if (iGoodCardIndex >= 0) {
             llMenu.visibility = View.VISIBLE
             clPrefs.removeViewAt(iGoodCardIndex)
+            return
         }
+        if (svCategory.visibility == View.VISIBLE){
+            svCategory.visibility = View.GONE
+            return
+        }
+        super.onBackPressed()
     }
 
     // Сохранение настроек текущего окна
@@ -512,6 +516,7 @@ class Prefs : AppCompatActivity() {
     fun fontvSettingsClick(view: View){
         svPerMenu.visibility = View.VISIBLE
         llEdit.visibility = View.GONE
+        svCategory.visibility = View.GONE
     }
 
     // Реакция на выбор пункта из меню настроек

@@ -2,6 +2,7 @@
 
 package com.product.cms
 
+import android.content.res.Resources
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.text.InputType
@@ -10,6 +11,7 @@ import android.view.Gravity
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.constraintlayout.widget.ConstraintSet
 import io.ktor.client.call.call
 import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
@@ -39,7 +41,37 @@ fun Prefs.fPrefGood(sRights: String) {
         }
         val sRequest = call.response.readText()
         jaSaveData = JSONArray(sRequest)
+        llCategory.removeAllViews()
+        val llBut = LinearLayout(this@fPrefGood)
+        llBut.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT)
+        llBut.orientation = LinearLayout.HORIZONTAL
+        (llBut.layoutParams as LinearLayout.LayoutParams).setMargins(0,5,0,5)
+        val iwCancel = ImageView(this@fPrefGood)
+        iwCancel.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        iwCancel.setImageResource(R.drawable.cancel)
+        iwCancel.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        iwCancel.setOnClickListener {
+            svCategory.visibility = View.GONE
+        }
+        val iwOK = ImageView(this@fPrefGood)
+        iwOK.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+        iwOK.setImageResource(R.drawable.done)
+        iwOK.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        llBut.addView(iwCancel)
+        llBut.addView(iwOK)
+        llCategory.addView(llBut)
+        faddCategory(0,0)
     }
+    val iVMargin = (Resources.getSystem().displayMetrics.heightPixels * 0.01f).toInt()
+    val iLMargin = (Resources.getSystem().displayMetrics.widthPixels * 0.3f).toInt()
+    val iRMargin = (Resources.getSystem().displayMetrics.widthPixels * 0.01f).toInt()
+    val set = ConstraintSet()
+    set.clone(clPrefs)
+    set.connect(R.id.svCategory, ConstraintSet.TOP, R.id.clPrefs, ConstraintSet.TOP, iVMargin)
+    set.connect(R.id.svCategory, ConstraintSet.LEFT, R.id.clPrefs, ConstraintSet.LEFT, iLMargin)
+    set.connect(R.id.svCategory, ConstraintSet.BOTTOM, R.id.clPrefs, ConstraintSet.BOTTOM, iVMargin)
+    set.connect(R.id.svCategory, ConstraintSet.RIGHT, R.id.clPrefs, ConstraintSet.RIGHT, iRMargin)
+    set.applyTo(clPrefs)
     llInfo.removeAllViews()
 
     // Заголовок
@@ -94,6 +126,7 @@ fun Prefs.fPrefGood(sRights: String) {
             iwCancel.setOnClickListener {
                 svPerMenu.visibility = View.GONE
                 llEdit.visibility = View.GONE
+                svCategory.visibility = View.GONE
                 fCollapseCategory()
             }
             val iwOK = ImageView(this)
@@ -119,6 +152,7 @@ fun Prefs.onLLClickListener(sRights: String): View.OnClickListener {
         svPerMenu.visibility = View.GONE
         llEdit.visibility = View.GONE
         llMenu.visibility = View.GONE
+        svCategory.visibility = View.GONE
         val svGoodCart = ScrollView(this)
         svGoodCart.layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT)
         svGoodCart.tag = "GoodCard"
@@ -278,6 +312,7 @@ fun Prefs.onLLLongClickListener(sRights: String): View.OnLongClickListener {
         fCollapseCategory()
         svPerMenu.visibility = View.GONE
         llEdit.visibility = View.VISIBLE
+        svCategory.visibility = View.GONE
         llEdit.y = v.y + llEdit.height + v.height / 2
 
         // Редактирование товара
@@ -355,7 +390,15 @@ fun Prefs.onLLLongClickListener(sRights: String): View.OnLongClickListener {
         // Применяемость к категории
         ivCategory.setOnClickListener {
             llEdit.visibility = View.GONE
-            Toast.makeText(this, "Применяемость к категории", Toast.LENGTH_SHORT).show()
+            svCategory.visibility = View.VISIBLE
+            (llCategory.getChildAt(0) as LinearLayout).getChildAt(1).setOnClickListener {
+                Toast.makeText(this, "Сохраняю привязку товаров", Toast.LENGTH_SHORT).show()
+                svCategory.visibility = View.GONE
+            }
+            // Проставлю привязку к категориям
+            GlobalScope.async(Dispatchers.Main) {
+                
+            }
         }
 
         // Акционные товары
@@ -364,6 +407,20 @@ fun Prefs.onLLLongClickListener(sRights: String): View.OnLongClickListener {
             Toast.makeText(this, "Акционные товары", Toast.LENGTH_SHORT).show()
         }
         true
+    }
+}
+
+// Вывод категорий
+fun Prefs.faddCategory(iIDParent: Int, iLevel: Int){
+    for (i in 0 until jaSaveData.length()){
+        if (iIDParent == jaSaveData.getJSONObject(i).getInt("iIDParent")) {
+            val cbCategory = CheckBox(this)
+            cbCategory.setTextColor(Color.parseColor("#000000"))
+            cbCategory.text = "  ".repeat(iLevel) + jaSaveData.getJSONObject(i).getString("sChild")
+            cbCategory.tag = jaSaveData.getJSONObject(i).getInt("iIDChild")
+            llCategory.addView(cbCategory)
+            faddCategory(jaSaveData.getJSONObject(i).getInt("iIDChild"), iLevel + 1)
+        }
     }
 }
 

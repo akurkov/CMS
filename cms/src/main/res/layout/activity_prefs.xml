@@ -279,4 +279,19 @@
 
     </LinearLayout>
 
+    <ScrollView
+        android:id="@+id/svCategory"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:drawable/editbox_dropdown_light_frame"
+        android:scrollbars="none"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/llCategory"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
